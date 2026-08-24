@@ -1,0 +1,8 @@
+scope,variant,features,annual_return,mean_monthly_ic,ic_positive_rate,monthly_prediction_std,mean_validation_rmse,mean_test_year_ic_average,best_iter_2024,best_iter_2025,interpretation
+12_symbols,full_raw,1200,-0.134613,0.004299,0.521739,0.003937,0.066231,0.004442,20,2,official baseline
+12_symbols,lag0_raw,20,0.039924,0.088898,0.652174,0.000987,0.066868,0.089281,0,4,post-hoc diagnostic
+12_symbols,sparse6_raw,120,0.052968,0.128048,0.652174,0.002658,0.066514,0.131692,9,20,post-hoc diagnostic
+12_symbols,summary_raw,80,-0.005342,-0.023397,0.478261,0.004798,0.065734,-0.016579,0,34,post-hoc diagnostic
+12_symbols,summary_xs_demean,80,0.070080,0.101853,0.608696,0.002111,0.055622,0.098716,3,8,post-hoc diagnostic
+12_symbols,full_xs_demean,1200,-0.048512,-0.078633,,,,-0.075578,1,0,post-hoc diagnostic
+50_symbols,full_raw,1200,-0.021404,0.009018,,,,-0.008076,0,72,sample-size diagnostic

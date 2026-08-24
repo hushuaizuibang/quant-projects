@@ -1,0 +1,37 @@
+{
+  "feature_count": 1200,
+  "test_rows": 276,
+  "test_months": 23,
+  "symbols_per_month_mean": 12.0,
+  "train_samples_by_test_year": {
+    "2024": 720,
+    "2025": 864
+  },
+  "feature_to_train_sample_ratio": {
+    "2024": 1.6666666666666667,
+    "2025": 1.3888888888888888
+  },
+  "best_iteration_by_test_year": {
+    "2024": 20,
+    "2025": 2
+  },
+  "prediction_mean": 0.007281401660293341,
+  "prediction_std": 0.014520494267344475,
+  "prediction_monthly_std_mean": 0.003936691675335169,
+  "target_std": 0.07262818512584411,
+  "target_monthly_std_mean": 0.05923804112212605,
+  "prediction_to_target_monthly_dispersion": 0.06645546680416432,
+  "overall_pearson": 0.03183435181305739,
+  "overall_spearman": 0.05914643820898138,
+  "monthly_ic_mean": 0.0042989666116329695,
+  "monthly_ic_std": 0.2311782046098045,
+  "monthly_ic_positive_rate": 0.5217391304347826,
+  "test_rmse": 0.07397871265465587,
+  "zero_prediction_rmse": 0.07250845098073823,
+  "rmse_skill_vs_zero": -0.020277107758214452,
+  "missing_feature_rate": 0.034288917824074075,
+  "annualized_gross_return": -0.12637512971890785,
+  "annualized_net_return": -0.134612936813029,
+  "annualized_cost_drag": 0.008237807094121141,
+  "average_turnover": 0.2999999999999999
+}
