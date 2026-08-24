@@ -1,0 +1,20 @@
+field,value
+data_source,AKShare local qfq cache
+price_adjustment,qfq
+requested_stocks,300
+loaded_stocks,300
+observations,393271
+start_date,2021-01-04
+end_date,2026-07-29
+constituent_snapshot_date,2026-07-29
+benchmark,equal-weight current CSI300 constituent proxy
+historical_membership,False
+industry_coverage,0.0
+point_in_time_fundamentals,False
+market_cap_coverage,0.9723696565357055
+market_cap_definition,"cached field; close*shares when available, otherwise rolling amount proxy"
+source_file,data\akshare\csi300_prices.csv
+available_factors,"size,momentum,low_volatility"
+scoring_method,icir
+commission_rate,0.0003
+slippage_rate,0.001
