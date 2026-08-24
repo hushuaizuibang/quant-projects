@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ml-factor-synthesis"
+version = "1.0.0"
+description = "Leakage-aware nonlinear synthesis of WorldQuant Alpha101 signals"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.2",
+  "matplotlib>=3.7",
+  "scikit-learn>=1.4",
+  "xgboost>=2.0",
+  "akshare>=1.12",
+  "tushare>=1.4",
+  "baostock>=0.9.3",
+]
+
+[project.optional-dependencies]
+research = ["pyarrow>=14.0", "shap>=0.45"]
+test = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
