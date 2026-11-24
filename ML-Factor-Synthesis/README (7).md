@@ -755,70 +755,6 @@ XGBoost。本项目保存的原版和优化版正式结果均未触发 fallback�
 
 相应行为由测试锁定，而不是仅靠注释约定。
 
-## 快速运行
-
-安装依赖：
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-离线、固定随机种子的完整年度 walk-forward：
-
-```powershell
-python main.py --source synthetic
-```
-
-快速验收：
-
-```powershell
-python main.py --source synthetic --symbols 20 --end-date 2025-12-31
-```
-
-四种中性化完整实验：
-
-```powershell
-python main.py --source synthetic --neutralization-experiment
-```
-
-在新的、未使用 holdout 上预先按验证 IC 选参：
-
-```powershell
-python main.py --source synthetic --model-selection ic
-```
-
-当前随项目保存的正式结果仍使用 spec 约定的 RMSE 选择；不能在看过现有测试结果后切换规则并覆盖结论。
-
-当前可复现的优化版真实行情：
-
-```powershell
-python main.py --source baostock --output-dir outputs_optimized
-```
-
-默认时间分割为2018–2022训练、2023验证、2024–2026测试；每个测试年执行扩展窗重训练。
-首次下载按股票缓存，仅在确实需要废弃缓存时使用 `--refresh`。
-
-Tushare 路径仍然保留，但需要 `index_weight`、`adj_factor`、`daily_basic` 和
-`index_member_all` 的足够权限：
-
-```powershell
-$env:TUSHARE_TOKEN="你的 Token"
-python main.py --source tushare --output-dir outputs_optimized
-```
-
-切换为截面去均值回归或 NDCG 排序：
-
-```powershell
-python main.py --source baostock --target-mode demean --objective reg:squarederror
-python main.py --source baostock --target-mode rank --objective rank:ndcg
-```
-
-安装 SHAP 后可以额外输出最新年度模型解释图：
-
-```powershell
-python main.py --shap
-```
-
 ## 输出文件
 
 主要结果位于 `outputs/`：
@@ -885,35 +821,6 @@ ML-Factor-Synthesis/
 `-- outputs_optimized/
 ```
 
-## 如何解释实验结果
-
-面试或研究报告中建议按以下顺序表达，而不是从最高收益数字开始：
-
-1. 先说明因子覆盖的经济直觉，以及为什么不按测试期表现筛因子；
-2. 展示月度 IC 和年度 walk-forward 稳定性，确认预测层是否有效；
-3. 比较单因子、等权、ICIR 和 ML，判断非线性合成是否真正提供增量；
-4. 加入成本和换手，说明预测优势能否转换为组合收益；
-5. 查看中性化实验，判断收益来源是个股信息还是风格暴露；
-6. 最后用 Bootstrap 区间讨论统计不确定性和样本长度限制。
-
-一个可信的结论可以是“ML 点估计更高，但 Bootstrap 区间跨零且 2025 年 IC 下降，因此目前只支持存在增量
-信号的弱证据”，而不是简单宣称模型战胜市场。能清楚说明证据强弱，本身就是这份项目的研究价值。
-
-## 已知限制
-
-- 合成数据只能验证代码与实验逻辑；
-- 当前成分股列表会造成幸存者偏差；
-- 免费数据的历史行业、市值和 VWAP 精度有限；
-- 20 日标签在月末间可能轻微重叠，Bootstrap 只能部分缓解依赖性；
-- 固定手续费和滑点没有表达个股流动性、冲击成本与策略容量；
-- 参数搜索空间刻意较小，避免在有限年份上做大规模数据挖掘；
-- SHAP 是模型解释工具，不等于经济因果解释。
-
-## 测试
-
-```powershell
-pytest
-```
 
 测试覆盖时序算子、前向标签及真实可得日期、未来数据隔离、年度 purge、截面标准化、双中性 OLS 等价性、
 缺失点时元数据防护、单因子预样本选择、RMSE/IC 候选选择、模型诊断、换手上限、成本、绩效指标和
