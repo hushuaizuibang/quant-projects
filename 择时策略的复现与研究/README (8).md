@@ -99,43 +99,6 @@ AKShare 行情与当前成分股
 
 这个流程的核心是将“因子本身是否有收益”与“如何在因子之间分配权重”分开。五种组合从同一个 `factor_returns` 面板出发，因此比较尽量只反映权重方法的差异。
 
-## 环境与快速开始
-
-### 环境要求
-
-- Windows PowerShell
-- Python 3.10 或更高版本
-- 依赖：`pandas`、`numpy`、`matplotlib`、`akshare`、`tabulate`
-
-从工作区根目录进入项目：
-
-```powershell
-cd .\因子择时复现与组合方法比较
-..\.venv\Scripts\python.exe -m pip install -r requirements.txt
-..\.venv\Scripts\python.exe run_akshare.py
-```
-
-如果当前终端已在项目目录，只需执行后两行。如果聚合缓存中已有至少 250 只股票，程序会直接使用本地数据；否则会通过 AKShare 补充行情。默认输出目录为 `outputs/akshare_csi300/`。
-
-一次完整运行会依次：
-
-1. 读取或补齐本地行情缓存。
-2. 重新计算因子暴露、因子收益和择时得分。
-3. 运行五类组合的公平比较。
-4. 生成市场状态、成本/频率敏感性和显著性结果。
-5. 运行 walk-forward 验证。
-6. 覆盖更新 `outputs/akshare_csi300/` 中的派生结果。
-
-> 注意：完整运行会覆盖同名输出。如果需要保留某一版实验，请先复制整个输出目录并在目录名中写明参数与日期。
-
-运行测试：
-
-```powershell
-..\.venv\Scripts\python.exe -m unittest discover -s tests -v
-```
-
-当前测试覆盖三个关键不变量：目标权重必须次日才生效；恒定等权在因子组合层不产生换手；所有对比策略的权重非负且合计为 1。
-
 ## 数据处理与因子构造
 
 默认股票池为沪深300当前成分股，数据由 AKShare 获取并缓存在 `data/akshare/`。日频输入包括复权 OHLC、成交量、成交额和可用的市值代理。
@@ -284,25 +247,6 @@ net_return_t = Σ w_(t,i) × factor_return_(t,i) - cost_t
 
 等权目标始终不变，因此其“因子组合层”换手为 0。**这不表示构造底层因子多空组合没有换手和成本**；当前 `factor_returns.csv` 尚未扣除底层股票交易成本。因为所有组合使用同一批因子收益，这部分被视为共同输入，但不同因子本身换手不同，未来应进一步在股票层建模。
 
-### 如何修改参数
-
-核心默认值位于 `src/factor_timing/config.py` 的 `ResearchConfig`：
-
-```python
-ResearchConfig(
-    rebalance_freq="W-FRI",        # D / W-FRI / ME
-    long_quantile=0.20,             # 多头分位
-    short_quantile=0.20,            # 空头分位
-    transaction_cost=0.0010,        # 10 bps / L1 换手
-    slippage=0.0005,                # 5 bps / L1 换手
-    max_rebalance_turnover=0.50,    # 单次 L1 换手上限
-    max_factor_weight=0.35,           # 归一化前软截断，非严格上限
-    random_seed=42,
-)
-```
-
-`run_akshare.py` 中对起止日期有运行时覆盖。如果要进行正式对比，建议每次只修改一类参数，并将参数与输出目录一起归档。
-
 ### 评价指标
 
 `comparison_metrics.csv` 包括：
@@ -378,13 +322,6 @@ $$
 | 分位排名 | 0.64% | 0.14 | 0.89 | [-8.23%, 10.70%] | 否 |
 | 逆波动 | 0.17% | 0.18 | 0.86 | [-1.84%, 2.66%] | 否 |
 
-移动区块 bootstrap 而不是逐日独立重采样，是为了在一定程度上保留日收益的短期自相关和波动聚集。这里的配对 t 检验 p 值使用大样本正态近似，主要用于辅助诊断；研究结论更依赖区块 bootstrap 与样本外结果。
-
-因此本项目当前能支持的表述是：
-
-> 全样本存在局部改善，但没有统计证据证明扣除组合层成本后，择时加权显著优于等权。
-
-不能表述为“择时方法已经被证明有效”。
 
 ## 稳健性检验
 
@@ -406,13 +343,6 @@ $$
 | 牛市 | 6.10% / 1.07 | 25.64% / 1.66 | 19.00% / 1.41 | 22.20% / 1.64 | 7.40% / 1.28 | 择时得分 |
 | 高波动 | 4.30% / 0.55 | 0.90% / 0.14 | -1.30% / -0.03 | -2.80% / -0.14 | 3.70% / 0.52 | 等权 |
 | 低波动 | 0.60% / 0.13 | 5.20% / 0.51 | 3.20% / 0.38 | 8.20% / 0.86 | 1.50% / 0.28 | 分位排名 |
-
-这张表是项目最有信息量的结果之一：
-
-- 择时得分不是防守型策略，而是在牛市中集中到强因子的进攻型策略。
-- 在熊市和高波动环境中，频繁改变因子暴露没有带来更好的风险补偿，等权反而更稳。
-- 逆波动在震荡市场最有效，说明当方向信号较弱时，直接管理风险可能优于预测因子强弱。
-- 低波动期间动态权重整体更好，但这是描述性结果，不是事前可直接使用的切换规则。
 
 ### 成本与调仓频率
 
@@ -480,89 +410,6 @@ $$
 
 每折中，训练窗口用于记录候选表现，验证窗口用于选择候选，测试窗口只负责生成最终样本外收益。各测试窗口按时间顺序拼接，不使用未来测试结果反向修改当期选择。
 
-## 输出文件
-
-建议按以下顺序阅读输出：
-
-1. `research_brief.md`：先看研究问题和最终结论。
-2. `research_dashboard.png`：快速检查净值、风险收益、状态和成本依赖。
-3. `comparison_metrics.csv`：核对全样本数值。
-4. `comparison_regime_metrics.csv` 与 `comparison_sensitivity.csv`：检查稳健性。
-5. `comparison_significance.csv` 与 `walk_forward_summary.md`：判断优势是否显著且能外推。
-6. `comparison_returns.csv`、`comparison_weights.csv` 和 `comparison_turnover.csv`：需要逐日审计时使用。
-
-主要公平比较产物：
-
-| 文件 | 内容 |
-| --- | --- |
-| `comparison_returns.csv` | 5 种策略扣费后日收益 |
-| `comparison_gross_returns.csv` | 5 种策略毛收益 |
-| `comparison_weights.csv` | 实际执行的因子权重 |
-| `comparison_turnover.csv` | 每日 L1 换手 |
-| `comparison_metrics.csv` | 全样本综合指标 |
-| `comparison_significance.csv` | 配对检验与 bootstrap 结果 |
-| `comparison_regime_metrics.csv` | 趋势和波动状态分层指标 |
-| `comparison_sensitivity.csv` | 成本/调仓频率敏感性 |
-| `comparison_equity_curve.png` | 扣费后净值曲线 |
-| `comparison_summary.md` | 自动生成的比较摘要 |
-| `research_dashboard.png` | 净值、风险收益、状态分层和成本敏感性四面板总览 |
-| `research_brief.md` | 一页式研究问题、方法、结果与结论摘要 |
-
-关键 CSV 的字段含义：
-
-- `annual_net_return`：扣除组合层成本后的几何年化收益。
-- `annual_excess_vs_equal`：策略年化净收益减去等权年化净收益。
-- `annual_turnover`：日均 L1 权重变化乘以 252；不是单边换手。
-- `total_trading_cost`：整个样本期内日度成本收益项之和。
-- `bootstrap_ci_low/high`：相对等权年化日均收益差的 95% 区间。
-- `bootstrap_probability_positive`：bootstrap 样本中收益差大于 0 的比例；它不等于严格的贝叶斯后验概率。
-
-原有复现与样本外产物：
-
-| 文件 | 内容 |
-| --- | --- |
-| `factor_returns.csv` | 统一的日度因子收益输入 |
-| `timing_scores.csv` | 日度因子择时分数 |
-| `factor_weights.csv` | 原始择时目标权重 |
-| `strategy_returns.csv` | 择时、等权和市场代理收益 |
-| `metrics.csv` | 原有组合指标 |
-| `walk_forward_returns.csv` | 拼接后的样本外收益 |
-| `walk_forward_folds.csv` | 每折区间、候选选择和诊断 |
-| `walk_forward_metrics.csv` | 样本外整体指标 |
-| `walk_forward_regime_metrics.csv` | 样本外趋势状态指标 |
-| `walk_forward_summary.md` | 自动生成的样本外摘要 |
-
-## 代码结构
-
-```text
-data/akshare/
-  csi300_prices.csv             # 权威行情缓存，不在 outputs 重复保存
-  csi300_constituents.csv       # 成分股缓存
-  stocks/                       # 逐股缓存，便于断点续传
-run_akshare.py
-src/factor_timing/
-  akshare_pipeline.py   # 数据缓存与总流程
-  factors.py            # 因子暴露和因子收益
-  signals.py            # 择时信号与得分权重
-  backtest.py           # 次日执行、成本和换手约束
-  comparison.py         # 公平比较、显著性、状态与敏感性
-  metrics.py            # 绩效指标
-  walk_forward.py       # 滚动训练/验证/测试
-tests/
-  test_backtest.py
-outputs/akshare_csi300/         # 派生结果，重跑时会更新
-```
-
-主要函数调用关系：
-
-- `run_akshare_pipeline()` 负责组织整个研究流程。
-- `compute_factor_exposures()` 从股票行情构造横截面暴露。
-- `compute_factor_returns()` 将暴露转换为分位数多空收益。
-- `build_timing_scores()` 构造六类信号的综合得分。
-- `simulate_weight_strategy()` 统一处理调仓、滞后、换手限制和成本。
-- `run_comparison_experiment()` 生成五策略对比、状态、敏感性和显著性产物。
-- `run_walk_forward_validation()` 进行滚动候选选择与样本外拼接。
-
 ## 已知局限与研究优先级
 
 当前最重要的局限按优先级排列：
@@ -591,29 +438,3 @@ outputs/akshare_csi300/         # 派生结果，重跑时会更新
 - [ ] 已查看状态分层、参数敏感性和 walk-forward，没有只展示最优全样本数字。
 - [ ] 已运行 `python -m unittest discover -s tests -v`。
 - [ ] 旧实验输出已在重跑前单独归档。
-
-## 常见问题
-
-### 为什么择时年化收益更高，却不能说它更好？
-
-因为它的年化波动约 12.83%，明显高于等权的 7.13%，导致 Sharpe 反而更低。同时 0.66% 的几何年化收益差很小，bootstrap 区间又跨过 0，无法排除随机波动。
-
-### 为什么等权换手是 0？
-
-这里统计的是上层“因子之间”的权重变化。等权目标恒定，所以上层换手为 0；但底层因子多空组合每日仍可能换股。这是当前成本模型的重要局限。
-
-### 牛市中择时表现很好，能否直接做市场状态切换？
-
-不能直接这样推断。当前状态分位阈值由全样本计算，主要用于事后描述。要将它变为可交易规则，必须使用当时可见数据决定阈值，并另做样本外测试。
-
-### 为什么不继续搜索更多参数直到显著？
-
-因为在约 5.5 年的同一样本上反复尝试窗口、阈值和策略，会引入严重的多重检验和数据挖掘偏差。当前更有价值的改进是增加无偏数据和股票层成本，而不是继续寻找最优参数。
-
-## 如何陈述这个项目
-
-一个准确、有说服力的简历或面试表述是：
-
-> 我构建了一个沪深300因子择时研究框架，将择时得分与等权、Top-K、分位排名和逆波动置于统一的次日执行、成本和换手约束下比较。结果显示择时在牛市有明显的描述性优势，但高换手使其对成本敏感，且 bootstrap 与 walk-forward 均不支持其稳定显著优于等权。逆波动的风险调整收益和成本稳健性更好，但收益改善幅度仍小。
-
-应避免声称“复现了研报全部因子”、“策略已获得稳定 Alpha”或“已可实盘”。更专业的表达是：本项目复现了研报的核心研究问题和可获取信号子集，并对“复杂加权是否优于简单基准”做了含否定结果的完整验证。
